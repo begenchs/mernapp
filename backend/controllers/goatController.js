@@ -2,12 +2,13 @@ const asyncHandler = require('express-async-handler')
 const goatModel = require('../models/goatModel')
 
 const Goat = require('../models/goatModel')
+const User = require('../models/userModel')
 
 // @description Get goat
 // @route       GET /api/goats
 // @access      Private
 const getGoat = asyncHandler(async (req, res) => {
-    const goats = await Goat.find()
+    const goats = await Goat.find({ user: req.user.id })
 
 
     res.status(200).json(goats)
@@ -23,7 +24,8 @@ const setGoat = asyncHandler(async (req, res) => {
     }
 
     const goat = await Goat.create({
-        text: req.body.text
+        text: req.body.text,
+        user: req.user.id
     })
 
     res.status(200).json(goat)
@@ -38,6 +40,20 @@ const updateGoat = asyncHandler( async (req, res) => {
     if(!goat) {
         res.status(400)
         throw new Error('Goat not found')
+    }
+
+    const user = await User.findById(req.user.id)
+
+    // Check for user
+    if(!user) {
+        res.status(401)
+        throw new Error('User not found')
+    }
+
+    // Make sure the logged in user matches the goat user
+    if(goat.user.toString() !== user.id) {
+        res.status(401)
+        throw new Error('User not authorized')
     }
 
     const updatedGoat = await Goat.findByIdAndUpdate(req.params.id, req.body, {
@@ -57,6 +73,21 @@ const deleteGoat = asyncHandler( async (req, res) => {
         res.status(400)
         throw new Error('Goat not found')
     }
+
+    const user = await User.findById(req.user.id)
+
+    // Check for user
+    if(!user) {
+        res.status(401)
+        throw new Error('User not found')
+    }
+
+    // Make sure the logged in user matches the goat user
+    if(goat.user.toString() !== user.id) {
+        res.status(401)
+        throw new Error('User not authorized')
+    }
+    
     await goat.remove()
 
     res.status(200).json({id: req.params.id})

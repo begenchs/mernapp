@@ -2,13 +2,15 @@ const express = require('express')
 const router = express.Router()
 const { getGoat, setGoat, updateGoat, deleteGoat } = require('../controllers/goatController')
 
-router.get('/', getGoat)
+const { protect } = require('../middleware/authMiddleware')
 
-router.post('/', setGoat)
+router.get('/', protect, getGoat)
 
-router.put('/:id', updateGoat)
+router.post('/', protect, setGoat)
 
-router.delete('/:id', deleteGoat)
+router.put('/:id', protect, updateGoat)
+
+router.delete('/:id', protect, deleteGoat)
 
 
 module.exports = router
