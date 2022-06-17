@@ -1,10 +1,16 @@
 const asyncHandler = require('express-async-handler')
+const goatModel = require('../models/goatModel')
+
+const Goat = require('../models/goatModel')
 
 // @description Get goat
 // @route       GET /api/goats
 // @access      Private
 const getGoat = asyncHandler(async (req, res) => {
-    res.status(200).json({message: 'Get goats'})
+    const goats = await Goat.find()
+
+
+    res.status(200).json(goats)
 })
 
 // @description Set goat
@@ -16,21 +22,44 @@ const setGoat = asyncHandler(async (req, res) => {
         throw new Error('Please add a text field')
     }
 
-    res.status(200).json({message: 'Set goat'})
+    const goat = await Goat.create({
+        text: req.body.text
+    })
+
+    res.status(200).json(goat)
 })
 
 // @description Update goat
 // @route       PUT /api/goats/:id
 // @access      Private
 const updateGoat = asyncHandler( async (req, res) => {
-    res.status(200).json({message: `Update goats ${req.params.id}`})
+    const goat = await Goat.findById(req.params.id)
+
+    if(!goat) {
+        res.status(400)
+        throw new Error('Goat not found')
+    }
+
+    const updatedGoat = await Goat.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+    })
+
+    res.status(200).json(updatedGoat)
 })
 
 // @description Delete goat
 // @route       DELETE /api/goats/:id
 // @access      Private
 const deleteGoat = asyncHandler( async (req, res) => {
-    res.status(200).json({message: `Delete goats ${req.params.id}`})
+    const goat = await Goat.findById(req.params.id)
+
+    if(!goat) {
+        res.status(400)
+        throw new Error('Goat not found')
+    }
+    await goat.remove()
+
+    res.status(200).json({id: req.params.id})
 })
 
 module.exports = {
